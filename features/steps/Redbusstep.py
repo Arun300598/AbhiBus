@@ -5,6 +5,7 @@ import allure
 from allure_commons.types import AttachmentType
 from behave import *
 from selenium import webdriver
+from selenium.common import NoSuchElementException
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -61,6 +62,52 @@ def step_impl(context, Busname):
 @then(u'verify the bus fare as "{Busfare}"')
 def step_impl(context,Busfare):
     assert context.l in Busfare
+
+@then(u'Verify Bus name "{Busname}" is present')
+def step_impl(context,Busname):
+    context.element_locator = "//h5[text()='{}']".format(Busname)
+    wait = WebDriverWait(context.driver, 10)
+    wait.until(EC.visibility_of_element_located((By.XPATH, context.element_locator)))
+    assert context.driver.find_element(By.XPATH, context.element_locator).is_displayed()
+
+@when(u'click on filter "{Filter}"')
+def step_impl(context,Filter):
+    if (Filter == "AC"):
+        wait = WebDriverWait(context.driver, 10)
+        wait.until(EC.visibility_of_element_located((By.XPATH, "//a/span[text()='AC']")))
+        context.driver.find_element(By.XPATH, "//a/span[text()='AC']").click()
+        time.sleep(5)
+    else:
+        wait = WebDriverWait(context.driver, 10)
+        wait.until(EC.visibility_of_element_located((By.XPATH, "//a/span[text()='Non AC']")))
+        context.driver.find_element(By.XPATH, "//a/span[text()='Non AC']").click()
+        time.sleep(5)
+
+
+@then(u'Verify buses listed are as per the filter "{Filter}"')
+def step_impl(context,Filter):
+    if (Filter == "AC"):
+      try:
+        context.driver.find_element(By.XPATH, "//p[contains(text(), 'NON-AC')]").is_displayed()
+      except NoSuchElementException:
+        assert True
+    else:
+
+        for i in context.driver.find_elements(By.XPATH, "//p[@class='sub-title']"):
+            sub='NON-AC'
+            if sub in i.text:
+                assert True
+            else:
+                assert False
+
+
+
+
+
+
+
+
+
 
 
 
